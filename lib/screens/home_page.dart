@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jarvis/service/secrets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../service/openai_service.dart';
+import '../widgets/app_drawer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,6 +29,26 @@ class _HomePageState extends State<HomePage> {
   final commandController = TextEditingController();
   int seconds = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    initSpeechToText();
+    initTextToSpeech();
+    systemSpeak('How may i help you today sir');
+    // startTimer();
+    getData();
+  }
+
+  void getData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final getName = prefs.getString('name');
+    bossName = getName ?? '';
+    final getEmail = prefs.getString('email');
+    userEmailId = getEmail ?? '';
+    final getApi = prefs.getString('apiKey');
+    openAIAPIKey = getApi ?? '';
+  }
+
   void startTimer() {
     seconds = 60;
     Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -37,15 +60,6 @@ class _HomePageState extends State<HomePage> {
         });
       }
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initSpeechToText();
-    initTextToSpeech();
-    systemSpeak('How may i help you today sir');
-    // startTimer();
   }
 
   Future<void> initTextToSpeech() async {
@@ -144,6 +158,7 @@ class _HomePageState extends State<HomePage> {
         systemOverlayStyle:
             const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
       ),
+      drawer: const AppDrawer(),
       body: Column(
         children: [
           Container(

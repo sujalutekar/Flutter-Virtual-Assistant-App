@@ -14,7 +14,7 @@ class AddNewApiScreen extends StatefulWidget {
 class _AddNewApiScreenState extends State<AddNewApiScreen> {
   final apiKeyController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final String keyName = 'apiKey';
+  final String apiKey = 'apiKey';
   bool isLoading = true;
 
   @override
@@ -31,7 +31,7 @@ class _AddNewApiScreenState extends State<AddNewApiScreen> {
 
   void _getData() async {
     final prefs = await SharedPreferences.getInstance();
-    final getAPIKey = prefs.getString(keyName);
+    final getAPIKey = prefs.getString(apiKey);
     openAIAPIKey = getAPIKey ?? '';
     if (openAIAPIKey.isNotEmpty) {
       navigateToSplashScreen();
@@ -44,7 +44,7 @@ class _AddNewApiScreenState extends State<AddNewApiScreen> {
 
   Future<void> setData(apiKeyValue) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(keyName, apiKeyValue);
+    await prefs.setString(apiKey, apiKeyValue);
   }
 
   showSnackbar() {

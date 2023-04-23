@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import './home_page.dart';
+import '../service/secrets.dart';
 
 class SplashScreen extends StatefulWidget {
+  static const routeName = '/splash-screen';
   const SplashScreen({super.key});
 
   @override
@@ -24,7 +27,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> systemSpeak() async {
-    await flutterTts.speak('Welcome Back Sir, We\'re Online & Ready.');
+    final prefs = await SharedPreferences.getInstance();
+    final getName = prefs.getString('name');
+    bossName = getName ?? '';
+
+    if (bossName.isNotEmpty) {
+      await flutterTts.speak('Welcome Back $bossName, We\'re Online & Ready.');
+    } else {
+      await flutterTts.speak('Welcome Back Sir, We\'re Online & Ready.');
+    }
   }
 
   void navigateToHomePage() {
