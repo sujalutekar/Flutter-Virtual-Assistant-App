@@ -114,17 +114,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.deepPurple),
-                  color: Colors.white,
+                  // color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: TextFormField(
-                  // initialValue: bossName,
+                  style: const TextStyle(color: Colors.white),
                   controller: nameController,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.only(left: 15),
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    contentPadding: const EdgeInsets.only(left: 15),
                     border: InputBorder.none,
-                    hintText: 'Name',
+                    labelStyle: const TextStyle(color: Colors.amber),
+                    labelText: 'Name',
+                    // hintText: 'Name',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -154,17 +162,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.deepPurple),
-                  color: Colors.white,
+                  // color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: TextFormField(
+                  style: const TextStyle(color: Colors.white),
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.only(left: 15),
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    contentPadding: const EdgeInsets.only(left: 15),
                     border: InputBorder.none,
-                    hintText: 'Email',
+                    labelStyle: const TextStyle(color: Colors.amber),
+                    labelText: 'Email',
+                    // hintText: 'Email',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -197,15 +214,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.deepPurple),
-                  color: Colors.white,
+                  // color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: TextFormField(
+                  style: const TextStyle(color: Colors.white),
                   controller: apiController,
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.only(left: 15),
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    contentPadding: const EdgeInsets.only(left: 15),
                     border: InputBorder.none,
-                    hintText: 'Your API Key',
+                    labelStyle: const TextStyle(color: Colors.amber),
+                    labelText: 'Your API Key',
+                    // hintText: 'Your API Key',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -224,6 +251,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       });
 
                       await setData(apiKey, value);
+                      saveForm();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          duration: Duration(milliseconds: 1500),
+                          content: Text('Saved Successfully'),
+                        ),
+                      );
                     }
                   },
                 ),

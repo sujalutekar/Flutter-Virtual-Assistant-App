@@ -25,7 +25,6 @@ class MyApp extends StatelessWidget {
       ),
       title: 'jarvis',
       home: const AddNewApiScreen(),
-      // home: const HomePage(),
       routes: {
         ProfileScreen.routeName: (ctx) => const ProfileScreen(),
         SplashScreen.routeName: (ctx) => const SplashScreen(),
