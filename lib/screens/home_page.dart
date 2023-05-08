@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void startTimer() {
-    seconds = 60;
+    seconds = 35;
     Timer.periodic(const Duration(seconds: 1), (timer) {
       if (seconds == 0) {
         timer.cancel();
@@ -87,6 +87,9 @@ class _HomePageState extends State<HomePage> {
       lastWords = result.recognizedWords;
       final speech = await openAIService.isArtPromptAI(lastWords);
 
+      startTimer();
+      seconds = 35;
+
       if (speech.contains('https')) {
         generatedImageUrl = speech;
         generatedContent = null;
@@ -97,8 +100,12 @@ class _HomePageState extends State<HomePage> {
         setState(() {});
         await systemSpeak(speech);
       }
+      if (generatedContent == 'An internal error occured') {
+        print('AlertDialog');
+        showAlertDialog();
+      }
 
-      print('SPEECH : $generatedContent');
+      print('SPEECH : $speech');
     }
     print(result);
   }
@@ -106,6 +113,9 @@ class _HomePageState extends State<HomePage> {
   void onCommandResult(String result) async {
     lastWords = result;
     final speech = await openAIService.isArtPromptAI(lastWords);
+
+    startTimer();
+    seconds = 35;
 
     if (speech.contains('https')) {
       generatedImageUrl = speech;
@@ -117,10 +127,31 @@ class _HomePageState extends State<HomePage> {
       setState(() {});
       await systemSpeak(speech);
     }
+    if (generatedContent == 'An internal error occured') {
+      print('AlertDialog');
+      showAlertDialog();
+    }
   }
 
   Future<void> systemSpeak(String content) async {
     await flutterTts.speak(content);
+  }
+
+  showAlertDialog() {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: const Text('Please wait for the time to pass out'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Got it'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -169,7 +200,7 @@ class _HomePageState extends State<HomePage> {
                 ? Text(
                     'Timer : $seconds',
                     style: const TextStyle(
-                      fontStyle: FontStyle.italic,
+                      // fontStyle: FontStyle.italic,
                       color: Colors.white,
                     ),
                   )
@@ -220,17 +251,18 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
-                      color: Colors.white,
+                      color: seconds != 0 ? Colors.grey : Colors.white,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.only(left: 15),
                       child: TextField(
+                        enabled: seconds != 0 ? false : true,
                         controller: commandController,
                         onSubmitted: (_) {
                           onCommandResult(commandController.text);
                           commandController.clear();
                           startTimer();
-                          seconds = 60;
+                          seconds = 35;
                         },
                         textInputAction: TextInputAction.done,
                         decoration: const InputDecoration(
@@ -243,20 +275,25 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(width: 16.0),
                 FloatingActionButton(
+                  backgroundColor: lastWords.isNotEmpty
+                      ? seconds != 0
+                          ? Colors.grey
+                          : Colors.blue
+                      : Colors.blue,
+                  onPressed: seconds == 0
+                      ? () async {
+                          if (await speechToText.hasPermission &&
+                              speechToText.isNotListening) {
+                            await startListening();
+                          } else if (speechToText.isListening) {
+                            await stopListening();
+                          } else {
+                            initSpeechToText();
+                          }
+                        }
+                      : null,
                   child: Icon(
                       speechToText.isNotListening ? Icons.mic : Icons.stop),
-                  onPressed: () async {
-                    if (await speechToText.hasPermission &&
-                        speechToText.isNotListening) {
-                      await startListening();
-                      startTimer();
-                      seconds = 60;
-                    } else if (speechToText.isListening) {
-                      await stopListening();
-                    } else {
-                      initSpeechToText();
-                    }
-                  },
                 ),
               ],
             ),
