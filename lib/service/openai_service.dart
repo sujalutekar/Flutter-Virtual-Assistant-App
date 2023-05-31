@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import './secrets.dart';
+import '../models/http_exception.dart';
 
 class OpenAIService {
   List<Map<String, String>> messages = [];
@@ -27,6 +28,15 @@ class OpenAIService {
         }),
       );
       print(res.body);
+      print('Status Code : ${res.statusCode}');
+
+      // ...
+      // final responeData = json.decode(res.body);
+      // if (res.statusCode >= 400 && responeData['error'] != null) {
+      //   print('Exception Thrown');
+      //   throw HttpException(responeData['error']['message']);
+      // }
+      // ...
       if (res.statusCode == 200) {
         String content =
             jsonDecode(res.body)['choices'][0]['message']['content'];
@@ -78,7 +88,7 @@ class OpenAIService {
         String content =
             jsonDecode(res.body)['choices'][0]['message']['content'];
         content = content.trim();
-        print('Status Code : ${res.statusCode}');
+        // print('Status Code : ${res.statusCode}');
 
         messages.add({
           'role': 'assistant',
@@ -108,21 +118,29 @@ class OpenAIService {
         },
         body: jsonEncode({
           'prompt': prompt,
-          'n': 1,
+          'n': 5, // 5 images
         }),
       );
 
       if (res.statusCode == 200) {
-        String imageUrl = jsonDecode(res.body)['data'][0]['url'];
-        imageUrl = imageUrl.trim();
-        print('Status Code : ${res.statusCode}');
+        List<String> images = [];
+
+        var a = jsonDecode(res.body)['data'] as Iterable;
+        a.forEach((e) {
+          print("IMAGE: " + e["url"]);
+          images.add(e["url"].trim());
+        });
+
+        // String imageUrl = jsonDecode(res.body)['data'][0]['url'];
+        // imageUrl = imageUrl.trim();
+        // print('Status Code : ${res.statusCode}');
 
         messages.add({
           'role': 'assistant',
-          'content': imageUrl,
+          'content': jsonEncode(images),
         });
 
-        return imageUrl;
+        return jsonEncode(images);
       }
       return 'An internal error occured';
     } catch (e) {

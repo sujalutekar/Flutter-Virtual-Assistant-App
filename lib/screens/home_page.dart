@@ -1,16 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jarvis/service/secrets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../service/secrets.dart';
 import '../service/openai_service.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/images.dart';
+import '../widgets/chat_item.dart';
+import '../models/message.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,6 +32,8 @@ class _HomePageState extends State<HomePage> {
   String? generatedImageUrl;
   final commandController = TextEditingController();
   int seconds = 0;
+  int maxSeconds = 35;
+  final List<Message> messages = [];
 
   @override
   void initState() {
@@ -37,6 +43,10 @@ class _HomePageState extends State<HomePage> {
     systemSpeak('How may i help you today sir');
     // startTimer();
     getData();
+  }
+
+  void addMessages(Message message) {
+    messages.add(message);
   }
 
   void getData() async {
@@ -50,8 +60,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void startTimer() {
-    seconds = 35;
-    Timer.periodic(const Duration(seconds: 1), (timer) {
+    seconds = maxSeconds;
+    Timer.periodic(const Duration(milliseconds: 1700), (timer) {
       if (seconds == 0) {
         timer.cancel();
       } else {
@@ -81,68 +91,77 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
-  void onSpeechResult(SpeechRecognitionResult result) async {
-    if (result.finalResult) {
-      print("FINAL RESULT : ${result.alternates}");
-      lastWords = result.recognizedWords;
-      final speech = await openAIService.isArtPromptAI(lastWords);
-
-      startTimer();
-      seconds = 35;
-
-      if (speech.contains('https')) {
-        generatedImageUrl = speech;
-        generatedContent = null;
-        setState(() {});
-      } else {
-        generatedImageUrl = null;
-        generatedContent = speech;
-        setState(() {});
-        await systemSpeak(speech);
-      }
-      if (generatedContent == 'An internal error occured') {
-        print('AlertDialog');
-        showAlertDialog();
-      }
-
-      print('SPEECH : $speech');
-    }
-    print(result);
-  }
-
-  void onCommandResult(String result) async {
-    lastWords = result;
+  Future<void> promptResult() async {
+    addMessages(
+      Message(
+        content: lastWords,
+        isMe: true,
+        color: Colors.blue,
+      ),
+    );
     final speech = await openAIService.isArtPromptAI(lastWords);
 
     startTimer();
-    seconds = 35;
+    seconds = maxSeconds;
 
     if (speech.contains('https')) {
       generatedImageUrl = speech;
       generatedContent = null;
-      setState(() {});
+      setState(() {
+        addMessages(
+          Message(
+            content: generatedImageUrl.toString(),
+            isMe: false,
+            color: Colors.white,
+          ),
+        );
+      });
     } else {
       generatedImageUrl = null;
       generatedContent = speech;
-      setState(() {});
+      setState(() {
+        addMessages(
+          Message(
+            content: generatedContent.toString(),
+            isMe: false,
+            color: Colors.white,
+          ),
+        );
+      });
       await systemSpeak(speech);
     }
     if (generatedContent == 'An internal error occured') {
-      print('AlertDialog');
-      showAlertDialog();
+      print('AlertDialog was shown');
+      showAlertDialog('PLease Wait For The Time To Pass Out');
     }
+    print('SPEECH : $speech');
+    print('List : $messages');
+  }
+
+  Future<void> onSpeechResult(SpeechRecognitionResult result) async {
+    if (result.finalResult) {
+      print("FINAL RESULT : ${result.alternates}");
+      lastWords = result.recognizedWords;
+      promptResult();
+    }
+    print(result);
+  }
+
+  Future<void> onCommandResult(String result) async {
+    lastWords = result;
+    promptResult();
   }
 
   Future<void> systemSpeak(String content) async {
     await flutterTts.speak(content);
   }
 
-  showAlertDialog() {
+  showAlertDialog(String message) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          content: const Text('Please wait for the time to pass out'),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -168,23 +187,8 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(
           'J.A.R.V.I.S.',
-          style: GoogleFonts.nunito(color: Colors.white),
+          style: GoogleFonts.nunito(color: Colors.black, fontSize: 25),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10).copyWith(bottom: 12),
-            child: Container(
-              height: 45,
-              width: 45,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: AssetImage('assets/images/jarvis.png'),
-                ),
-              ),
-            ),
-          ),
-        ],
         centerTitle: true,
         systemOverlayStyle:
             const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
@@ -200,8 +204,7 @@ class _HomePageState extends State<HomePage> {
                 ? Text(
                     'Timer : $seconds',
                     style: const TextStyle(
-                      // fontStyle: FontStyle.italic,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                   )
                 : null,
@@ -211,29 +214,37 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 children: [
                   Container(
-                    // color: Colors.amber,
                     alignment: Alignment.topCenter,
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(20).copyWith(top: 40),
-                          child: Text(
-                            (generatedContent == null &&
-                                    generatedImageUrl == null)
-                                ? 'Hello Sir, How can i assist you today?'
-                                : generatedContent ?? "",
-                            style: const TextStyle(color: Colors.white),
-                          ),
+                          padding: const EdgeInsets.all(10).copyWith(top: 20),
+                          child: (messages.isEmpty)
+                              ? ChatItem(
+                                  message: Message(
+                                    content: 'How can i help you',
+                                    isMe: false,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: messages.length,
+                                  itemBuilder: (ctx, i) => IgnorePointer(
+                                    child: ChatItem(
+                                      message: messages[i],
+                                    ),
+                                  ),
+                                ),
                         ),
                         // For Image
                         Padding(
                           padding: const EdgeInsets.all(10),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: generatedImageUrl != null
-                                ? Image.network(generatedImageUrl!)
-                                : null,
-                          ),
+                          child: Images(
+                              imageUrl: (jsonDecode(generatedImageUrl ?? "[]")
+                                      as Iterable)
+                                  .toList()),
                         ),
                       ],
                     ),
@@ -250,7 +261,7 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(10),
                       color: seconds != 0 ? Colors.grey : Colors.white,
                     ),
                     child: Padding(
@@ -262,7 +273,7 @@ class _HomePageState extends State<HomePage> {
                           onCommandResult(commandController.text);
                           commandController.clear();
                           startTimer();
-                          seconds = 35;
+                          seconds = maxSeconds;
                         },
                         textInputAction: TextInputAction.done,
                         decoration: const InputDecoration(

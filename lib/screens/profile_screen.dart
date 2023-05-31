@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../service/secrets.dart';
+import '../widgets/textformfield.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profile-screen';
@@ -38,18 +39,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  // void getData() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final getName = prefs.getString(nameKey);
-  //   bossName = getName ?? '';
-  //   final getEmail = prefs.getString(emailKey);
-  //   userEmailId = getEmail ?? '';
-  // }
-
   Future<void> setData(keyName, value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(keyName, value);
-    // await prefs.setString(keyName, value);
   }
 
   void saveForm() async {
@@ -78,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text(
           'Your Profile',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black),
         ),
         actions: [
           IconButton(
@@ -103,86 +95,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 10,
-            ),
-            // Name
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.deepPurple),
-                  // color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: TextFormField(
-                  style: const TextStyle(color: Colors.white),
-                  controller: nameController,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    contentPadding: const EdgeInsets.only(left: 15),
-                    border: InputBorder.none,
-                    labelStyle: const TextStyle(color: Colors.amber),
-                    labelText: 'Name',
-                    // hintText: 'Name',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-
-                    return null;
-                  },
-                  onFieldSubmitted: (value) async {
-                    if (_formKey.currentState!.validate()) {
-                      setState(() {
-                        bossName = value;
-                      });
-
-                      await setData(nameKey, value);
-                    }
-                  },
-                ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 10,
               ),
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            // Email
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.deepPurple),
-                  // color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: TextFormField(
-                  style: const TextStyle(color: Colors.white),
+              // Name
+              MyTextFormField(
+                labelText: 'Name',
+                controller: nameController,
+                textInputAction: TextInputAction.next,
+                textInputType: TextInputType.name,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+                onFieldSubmitted: (value) async {
+                  if (_formKey.currentState!.validate()) {
+                    setState(() {
+                      bossName = value;
+                    });
+                    await setData(nameKey, value);
+                  }
+                },
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              // Email
+              MyTextFormField(
+                  labelText: 'Email',
                   controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    contentPadding: const EdgeInsets.only(left: 15),
-                    border: InputBorder.none,
-                    labelStyle: const TextStyle(color: Colors.amber),
-                    labelText: 'Email',
-                    // hintText: 'Email',
-                  ),
+                  textInputType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email-id';
@@ -201,69 +150,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                       await setData(emailKey, value);
                     }
-                  },
-                ),
+                  }),
+              const SizedBox(
+                height: 15,
               ),
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            // API Key
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.deepPurple),
-                  // color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: TextFormField(
-                  style: const TextStyle(color: Colors.white),
-                  controller: apiController,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    contentPadding: const EdgeInsets.only(left: 15),
-                    border: InputBorder.none,
-                    labelStyle: const TextStyle(color: Colors.amber),
-                    labelText: 'Your API Key',
-                    // hintText: 'Your API Key',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please Enter Your API Key';
-                    }
-                    if (!value.startsWith('sk') && value.length < 40) {
-                      return 'Invalid API Key';
-                    }
+              // API Key
+              MyTextFormField(
+                labelText: 'Api Key',
+                controller: apiController,
+                textInputAction: TextInputAction.done,
+                textInputType: TextInputType.text,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please Enter Your API Key';
+                  }
+                  if (!value.startsWith('sk') && value.length < 40) {
+                    return 'Invalid API Key';
+                  }
 
-                    return null;
-                  },
-                  onFieldSubmitted: (value) async {
-                    if (_formKey.currentState!.validate()) {
-                      setState(() {
-                        openAIAPIKey = value;
-                      });
+                  return null;
+                },
+                onFieldSubmitted: (value) async {
+                  if (_formKey.currentState!.validate()) {
+                    setState(() {
+                      openAIAPIKey = value;
+                    });
 
-                      await setData(apiKey, value);
-                      saveForm();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          duration: Duration(milliseconds: 1500),
-                          content: Text('Saved Successfully'),
-                        ),
-                      );
-                    }
-                  },
-                ),
+                    await setData(apiKey, value);
+                    saveForm();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        duration: Duration(milliseconds: 1500),
+                        content: Text('Saved Successfully'),
+                      ),
+                    );
+                  }
+                },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

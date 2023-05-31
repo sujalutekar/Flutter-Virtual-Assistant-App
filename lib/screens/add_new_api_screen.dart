@@ -171,12 +171,7 @@ class _AddNewApiScreenState extends State<AddNewApiScreen> {
               ),
             )
           : const Center(
-              child: Text(
-                'LOADING...',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
+              child: CircularProgressIndicator(),
             ),
     );
   }
